@@ -13,7 +13,7 @@ export default function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stopwatchTime, setStopwatchTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -38,6 +38,7 @@ export default function App() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     if (isRunning) {
@@ -109,22 +110,24 @@ export default function App() {
     <div className={`min-h-screen p-4 ${darkMode ? 'bg-slate-900 text-white' : 'bg-blue-100 text-black'}`}>
       <div className="max-w-6xl mx-auto mb-6">
         <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold">To-Do App</h1>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="border px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              {darkMode ? "Light Mode" : "Dark Mode"}
-            </button>
-          </div>
+          <h1 className="text-3xl font-bold">To-Do App</h1>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="border px-3 py-1 rounded backdrop-blur-sm bg-white/10 dark:bg-white/10 border-gray-300 dark:border-gray-600 hover:bg-white/20 dark:hover:bg-white/20"
+          >
+            {darkMode ? "Light Mode" : "Dark Mode"}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto mb-6">
+        {/* Current Time */}
         <div className={`p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gradient-to-br from-slate-700 to-slate-600' : 'bg-gradient-to-br from-white to-blue-200'}`}>
           <h2 className="text-2xl font-semibold mb-2 text-center">🕒 Current Time</h2>
           <p className="text-4xl font-mono text-center">{currentTime.toLocaleTimeString()}</p>
         </div>
 
+        {/* Add Todo */}
         <div className={`p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gradient-to-br from-slate-700 to-slate-600' : 'bg-gradient-to-br from-white to-blue-200'}`}>
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Details..</h1>
@@ -146,24 +149,30 @@ export default function App() {
             />
             <button
               onClick={addTodo}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-fit"
+              className={`px-4 py-2 rounded backdrop-blur-sm hover:opacity-90 w-fit 
+                ${darkMode
+                  ? 'bg-purple-700 text-white hover:bg-purple-700'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
             >
               Add Task
             </button>
           </div>
         </div>
 
+        {/* Stopwatch */}
         <div className={`p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gradient-to-br from-slate-700 to-slate-600' : 'bg-gradient-to-br from-white to-blue-200'}`}>
           <h2 className="text-2xl font-semibold mb-2 text-center">⏱️ Stopwatch</h2>
           <p className="text-4xl font-mono mb-3 text-center">{formatStopwatch(stopwatchTime)}</p>
           <div className="flex gap-2 flex-wrap items-center justify-center">
-            <button onClick={() => setIsRunning(true)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Start</button>
-            <button onClick={() => setIsRunning(false)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Pause</button>
-            <button onClick={() => { setIsRunning(false); setStopwatchTime(0); }} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reset</button>
+            <button onClick={() => setIsRunning(true)} className="px-3 py-1 rounded text-white bg-green-500 hover:bg-green-600 backdrop-blur-sm bg-opacity-80">Start</button>
+            <button onClick={() => setIsRunning(false)} className="px-3 py-1 rounded text-white bg-yellow-500 hover:bg-yellow-600 backdrop-blur-sm bg-opacity-80">Pause</button>
+            <button onClick={() => { setIsRunning(false); setStopwatchTime(0); }} className="px-3 py-1 rounded text-white bg-red-500 hover:bg-red-600 backdrop-blur-sm bg-opacity-80">Reset</button>
           </div>
         </div>
       </div>
 
+      {/* Task List */}
       <div className="w-full max-w-3xl mx-auto space-y-4">
         {todos.length === 0 ? (
           <p className="text-center text-gray-500">No tasks yet</p>
