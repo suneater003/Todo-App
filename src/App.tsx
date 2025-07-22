@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from './supabaseClient';
 
+type Todo = {
+  id: number;
+  text: string;
+  description: string;
+  completed: boolean;
+  time: string;
+};
+
 export default function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
   const [darkMode, setDarkMode] = useState(false);
@@ -10,7 +18,6 @@ export default function App() {
   const [stopwatchTime, setStopwatchTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
 
-  // Fetch todos on load
   useEffect(() => {
     const fetchTodos = async () => {
       const { data, error } = await supabase
@@ -19,34 +26,33 @@ export default function App() {
         .order('id', { ascending: false });
 
       if (error) console.error("Fetch error:", error.message);
-      else setTodos(data);
+      else setTodos(data as Todo[]);
     };
 
     fetchTodos();
   }, []);
 
-  // Clock
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  // Stopwatch
   useEffect(() => {
-    let interval = null;
+    let interval: NodeJS.Timeout | undefined;
     if (isRunning) {
       interval = setInterval(() => {
         setStopwatchTime(prev => prev + 1);
       }, 1000);
-    } else {
+    } else if (interval) {
       clearInterval(interval);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isRunning]);
 
-  const formatStopwatch = (seconds) => {
+  const formatStopwatch = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
@@ -62,14 +68,14 @@ export default function App() {
 
       if (error) console.error("Insert error:", error.message);
       else {
-        setTodos([data[0], ...todos]);
+        setTodos([...(data as Todo[]), ...todos]);
         setInput('');
         setDescription('');
       }
     }
   };
 
-  const toggleComplete = async (index) => {
+  const toggleComplete = async (index: number) => {
     const todo = todos[index];
     const { data, error } = await supabase
       .from('todos')
@@ -80,12 +86,12 @@ export default function App() {
     if (error) console.error("Update error:", error.message);
     else {
       const updatedTodos = [...todos];
-      updatedTodos[index] = data[0];
+      updatedTodos[index] = (data as Todo[])[0];
       setTodos(updatedTodos);
     }
   };
 
-  const removeTodo = async (index) => {
+  const removeTodo = async (index: number) => {
     const todo = todos[index];
     const { error } = await supabase
       .from('todos')
@@ -111,24 +117,18 @@ export default function App() {
               {darkMode ? "Light Mode" : "Dark Mode"}
             </button>
           </div>
-
       </div>
 
-      {/* Top Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto mb-6">
-        {/* Clock */}
         <div className={`p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gradient-to-br from-slate-700 to-slate-600' : 'bg-gradient-to-br from-white to-blue-200'}`}>
           <h2 className="text-2xl font-semibold mb-2 text-center">🕒 Current Time</h2>
           <p className="text-4xl font-mono text-center">{currentTime.toLocaleTimeString()}</p>
         </div>
 
-        {/* Input Form */}
         <div className={`p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gradient-to-br from-slate-700 to-slate-600' : 'bg-gradient-to-br from-white to-blue-200'}`}>
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Details..</h1>
-           
           </div>
-
           <div className="flex flex-col gap-2">
             <input
               type="text"
@@ -153,7 +153,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Stopwatch */}
         <div className={`p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gradient-to-br from-slate-700 to-slate-600' : 'bg-gradient-to-br from-white to-blue-200'}`}>
           <h2 className="text-2xl font-semibold mb-2 text-center">⏱️ Stopwatch</h2>
           <p className="text-4xl font-mono mb-3 text-center">{formatStopwatch(stopwatchTime)}</p>
@@ -165,7 +164,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Task List */}
       <div className="w-full max-w-3xl mx-auto space-y-4">
         {todos.length === 0 ? (
           <p className="text-center text-gray-500">No tasks yet</p>
